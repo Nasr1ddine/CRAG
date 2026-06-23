@@ -169,6 +169,12 @@ By default, Compose publishes:
 
 Inside Compose, the Streamlit service talks to the API at `http://crag-api:8000` through `CRAG_FRONTEND_API_BASE_URL`. Set `CRAG_STREAMLIT_PORT=8502`, `CRAG_API_PORT=8080`, or another free host port in `.env` if needed.
 
-## Deploy on Render
+## Deploy on Dokploy
 
-`render.yaml` is included for Docker deployment. Configure secret values (`OPENAI_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `TAVILY_API_KEY`, and Langfuse keys) in the Render dashboard; non-secret defaults are declared in `render.yaml`.
+Use `docker-compose.yml` as the Dokploy Compose source. It defines three services:
+
+- `crag-api` serves the FastAPI backend on container port `8000`.
+- `crag-streamlit` serves the Streamlit inspector frontend on container port `8501`.
+- `qdrant` provides the local vector store on container port `6333`.
+
+Configure secret values (`OPENAI_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `TAVILY_API_KEY`, and Langfuse keys) in Dokploy. The Streamlit service uses `CRAG_FRONTEND_API_BASE_URL`; by default it calls the API through Docker networking at `http://crag-api:8000`.
