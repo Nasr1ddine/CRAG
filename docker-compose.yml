@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "${CRAG_API_PORT:-8001}:8000"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}

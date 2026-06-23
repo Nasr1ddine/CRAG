@@ -68,6 +68,7 @@ Optional settings:
 - `MAX_REWRITE_ITERATIONS` (default: `2`)
 - `CHUNK_SIZE`, `CHUNK_OVERLAP`, `MAX_UPLOAD_BYTES`
 - `GRADER_MODEL`, `GENERATOR_MODEL`
+- `CRAG_API_PORT` (default: `8001` for Docker Compose host access)
 
 **Local Qdrant (optional):** if your `QDRANT_URL` points at the wrong host, uploads and queries will fail against Qdrant. For a local instance:
 
@@ -134,6 +135,8 @@ poetry run pytest -v
 docker build -t crag-system .
 docker run --env-file .env -p 8000:8000 crag-system
 ```
+
+Docker Compose publishes the API on `http://localhost:8001` by default to avoid common port `8000` conflicts. Set `CRAG_API_PORT=8080` or another free host port in `.env` if needed.
 
 ## Deploy on Render
 
