@@ -210,6 +210,35 @@ class IngestResponse(BaseModel):
     )
 
 
+def _extract_upload_text(label: str, raw: bytes) -> str:
+    """Extract uploaded text and convert parser failures into client errors."""
+    try:
+        return extract_text(label, raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Text extraction failed for upload '%s'", label)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not extract text from '{label}': {exc}",
+        ) from exc
+
+
+def _replace_existing_source_if_present(source: str) -> bool:
+    """Remove previous chunks for a source before a fresh ingest."""
+    try:
+        if count_by_source(source) > 0:
+            delete_by_source(source)
+            return True
+    except Exception as exc:
+        logger.exception("Pre-index cleanup failed for source '%s'", source)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Pre-index cleanup error for source '{source}': {exc}",
+        ) from exc
+    return False
+
+
 def _build_langfuse_handler(
     trace_id: str,
     user_id: Optional[str] = None,
@@ -305,18 +334,14 @@ async def upload_documents(files: list[UploadFile] = File(...)) -> IngestRespons
                 detail=f"File '{upload.filename or 'unnamed'}' exceeds max size of {max_b} bytes.",
             )
         label = upload.filename or "upload.txt"
-        try:
-            text = extract_text(label, raw)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        text = _extract_upload_text(label, raw)
         if not text.strip():
             raise HTTPException(
                 status_code=400,
                 detail=f"No extractable text in '{label}'.",
             )
 
-        if count_by_source(label) > 0:
-            delete_by_source(label)
+        if _replace_existing_source_if_present(label):
             replaced.append(label)
 
         all_docs.extend(split_into_documents(text, source=label, batch_id=batch_id))
@@ -359,8 +384,7 @@ async def ingest_text_body(request: TextIngestRequest) -> IngestResponse:
     batch_id = uuid.uuid4().hex
     replaced: list[str] = []
 
-    if count_by_source(request.source) > 0:
-        delete_by_source(request.source)
+    if _replace_existing_source_if_present(request.source):
         replaced.append(request.source)
 
     docs = split_into_documents(text, source=request.source, batch_id=batch_id)
