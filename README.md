@@ -23,6 +23,7 @@ Production-grade Self-Correcting Retrieval-Augmented Generation (CRAG) pipeline.
 - Tavily web search
 - RAGAS evaluation
 - FastAPI + Pydantic v2
+- Streamlit frontend
 - Poetry + Docker + Render
 
 ## Setup
@@ -91,6 +92,24 @@ poetry run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 Browser file upload (multipart): open [http://localhost:8000/upload](http://localhost:8000/upload) to choose `.txt` / `.md` / `.pdf` files — avoids sending a path string in JSON.
 
 API docs are served at [http://localhost:8000/docs](http://localhost:8000/docs). The app uses bundled Swagger UI JavaScript/CSS when present and falls back to CDN-hosted assets when needed.
+
+## Run Streamlit Inspector
+
+The Streamlit frontend runs as a separate process and calls the FastAPI backend over HTTP. Start the API first, then launch the inspector:
+
+```bash
+poetry run streamlit run app.py
+```
+
+If the API is running through Docker Compose, set the sidebar API base URL to `http://localhost:8001`. For a local `uvicorn` process, use `http://localhost:8000`.
+
+The inspector provides:
+
+- Query workspace with answer, route, rewrite, source, and faithfulness diagnostics.
+- Document workspace for multipart upload, pasted-text ingest, and deletion by source or batch id.
+- System workspace for cached `/health` and safe `/debug/config` checks.
+
+The Streamlit UI keeps all business logic in plain Python modules and uses fragments around slow query/ingest/delete actions so routine page navigation does not repeat expensive backend calls.
 
 Health check:
 
