@@ -25,6 +25,25 @@ services:
       - qdrant
     restart: unless-stopped
 
+  crag-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - streamlit
+      - run
+      - app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --browser.gatherUsageStats=false
+    ports:
+      - "${CRAG_STREAMLIT_PORT:-8501}:8501"
+    environment:
+      CRAG_FRONTEND_API_BASE_URL: ${CRAG_FRONTEND_API_BASE_URL:-http://crag-api:8000}
+    depends_on:
+      - crag-api
+    restart: unless-stopped
+
   qdrant:
     image: qdrant/qdrant:latest
     ports:

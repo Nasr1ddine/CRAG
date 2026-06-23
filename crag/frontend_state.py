@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Any
 
-DEFAULT_API_BASE_URL = "http://localhost:8000"
+DEFAULT_API_BASE_URL = os.getenv("CRAG_FRONTEND_API_BASE_URL", "http://localhost:8000")
 
 
 class StateKey:

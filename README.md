@@ -155,7 +155,19 @@ docker build -t crag-system .
 docker run --env-file .env -p 8000:8000 crag-system
 ```
 
-Docker Compose publishes the API on `http://localhost:8001` by default to avoid common port `8000` conflicts. Set `CRAG_API_PORT=8080` or another free host port in `.env` if needed.
+Docker Compose runs the API, Streamlit inspector, and Qdrant:
+
+```bash
+docker compose up --build
+```
+
+By default, Compose publishes:
+
+- Streamlit inspector: `http://localhost:8501`
+- CRAG API: `http://localhost:8001`
+- Qdrant: `http://localhost:6333`
+
+Inside Compose, the Streamlit service talks to the API at `http://crag-api:8000` through `CRAG_FRONTEND_API_BASE_URL`. Set `CRAG_STREAMLIT_PORT=8502`, `CRAG_API_PORT=8080`, or another free host port in `.env` if needed.
 
 ## Deploy on Render
 
