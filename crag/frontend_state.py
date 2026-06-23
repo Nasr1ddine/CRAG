@@ -6,7 +6,22 @@ import os
 from dataclasses import dataclass, field
 from typing import Any
 
-DEFAULT_API_BASE_URL = os.getenv("CRAG_FRONTEND_API_BASE_URL", "http://localhost:8000")
+FALLBACK_API_BASE_URL = "http://localhost:8000"
+
+
+def normalize_api_base_url(base_url: str | None) -> str:
+    """Return a usable CRAG API URL for the Streamlit frontend."""
+    cleaned_url = (base_url or "").strip()
+    if not cleaned_url:
+        return FALLBACK_API_BASE_URL
+
+    if "://" not in cleaned_url:
+        cleaned_url = f"http://{cleaned_url}"
+
+    return cleaned_url.rstrip("/")
+
+
+DEFAULT_API_BASE_URL = normalize_api_base_url(os.getenv("CRAG_FRONTEND_API_BASE_URL"))
 
 
 class StateKey:

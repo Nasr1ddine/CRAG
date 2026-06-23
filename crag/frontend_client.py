@@ -12,6 +12,8 @@ from urllib.parse import quote
 
 import httpx
 
+from crag.frontend_state import normalize_api_base_url
+
 
 @dataclass(frozen=True)
 class QueryResult:
@@ -116,7 +118,7 @@ class CRAGApiClient:
     """Small typed client for the CRAG FastAPI service."""
 
     def __init__(self, base_url: str, *, timeout: float = 90.0) -> None:
-        self.base_url = base_url.rstrip("/")
+        self.base_url = normalize_api_base_url(base_url)
         self._client = httpx.Client(base_url=self.base_url, timeout=timeout)
 
     def health(self) -> dict[str, str]:

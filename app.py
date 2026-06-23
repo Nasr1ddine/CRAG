@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from crag.frontend_client import CRAGApiClient, CRAGApiError
-from crag.frontend_state import StateKey, default_state_values
+from crag.frontend_state import StateKey, default_state_values, normalize_api_base_url
 
 
 st.set_page_config(
@@ -19,6 +19,9 @@ def initialize_session_state() -> None:
     """Install explicit defaults without overwriting an active session."""
     for key, value in default_state_values().items():
         st.session_state.setdefault(key, value)
+    st.session_state[StateKey.API_BASE_URL] = normalize_api_base_url(
+        st.session_state[StateKey.API_BASE_URL]
+    )
 
 
 @st.cache_resource(show_spinner=False)
@@ -38,6 +41,13 @@ def render_api_error(error: CRAGApiError) -> None:
     st.error(f"{label}: {error}")
 
 
+def normalize_sidebar_api_url() -> None:
+    """Keep user-edited sidebar values valid before pages use them."""
+    st.session_state[StateKey.API_BASE_URL] = normalize_api_base_url(
+        st.session_state[StateKey.API_BASE_URL]
+    )
+
+
 def render_sidebar() -> None:
     """Render global controls shared by all pages."""
     with st.sidebar:
@@ -48,6 +58,7 @@ def render_sidebar() -> None:
             "API base URL",
             key=StateKey.API_BASE_URL,
             help="FastAPI backend URL, for example http://localhost:8000 or http://localhost:8001.",
+            on_change=normalize_sidebar_api_url,
         )
         st.text_input(
             "User ID for tracing",
